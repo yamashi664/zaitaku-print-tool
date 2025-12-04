@@ -32,7 +32,7 @@ def parse_input_date(s: str) -> datetime:
 
 
 # ===== ファイル収集 =====
-def collect_targets(parent_folder: Path, target_date: datetime) -> List[Tuple[str, Path]]:
+def collect_targets(parent_folder: Path, target_date: datetime) -> List[Tuple[str, Path, str]]:
     """
     バッチ仕様：
       - parent 配下の各サブフォルダを走査
@@ -40,7 +40,7 @@ def collect_targets(parent_folder: Path, target_date: datetime) -> List[Tuple[st
       - そのサブフォルダでPDFが1つでも対象になったら、同フォルダのdocmも全部対象
     戻り値: [("pdf", pdf_path), ("word", docm_path), ...]
     """
-    targets: List[Tuple[str, Path]] = []
+    targets: List[Tuple[str, Path, str]] = []
 
     for sub in sorted(parent_folder.iterdir()):
         if not sub.is_dir():
@@ -57,13 +57,16 @@ def collect_targets(parent_folder: Path, target_date: datetime) -> List[Tuple[st
         if recent_pdfs:
             # PDFを対象に追加
             for p in recent_pdfs:
-                targets.append(("pdf",p))
+                targets.append(("pdf", p, p.name))
             
             # PDFがあったフォルダだけwordファイルを対象に追加
             doc_exts = {".doc", ".docx", ".docm"}
-            docms = [p for p in sorted(sub.glob("*.doc*")) if p.suffix.lower() in doc_exts and not p.name.startswith("~$")]
+            docms = [
+                p for p in sorted(sub.glob("*.doc*")) 
+                if p.suffix.lower() in doc_exts and not p.name.startswith("~$")
+                ]
             for w in docms:
-                targets.append(("word", w))
+                targets.append(("word", w, w.name))
             
     return targets
 
