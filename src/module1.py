@@ -93,17 +93,59 @@ def print_word_with_soffice(soffice_path: Path, printer_name: str, word_path: Pa
 # ===== キュー制御（骨組み） =====
 def get_print_queue_size(printer_name: str) -> Optional[int]:
     """
-    ここは後で実装：
-      - pywin32 を入れて win32print.EnumJobs を使う想定
-    ひとまず None を返して、キュー制御なしで動く骨組みにしておく
+    プリンタの印刷キュー（待ちジョブ）数を返す。
+    優先順:
+      1) pywin32(win32print) があれば EnumJobs で取得
+      2) 無ければ PowerShell Get-PrintJob で取得
+    どれもダメなら None を返す（キュー制御なしで動作）
     """
-    return None
+    # --- 1) pywin32 で取得 ---
+    try:
+        import win32print  # type: ignore
+
+        # OpenPrinter はプリンタ名が正しい前提（config.json の printer_name）
+        hPrinter = win32print.OpenPrinter(printer_name)
+        try:
+            # EnumJobs(hPrinter, FirstJob, NoJobs, Level)
+            # Level=1 で簡易情報。0件なら空リスト。
+            jobs = win32print.EnumJobs(hPrinter, 0, -1, 1)
+            return len(jobs)
+        finally:
+            win32print.ClosePrinter(hPrinter)
+
+    except ImportError:
+        # pywin32 未導入 → PowerShellへフォールバック
+        pass
+    except Exception:
+        # pywin32はあるが何か失敗（権限/名前違い等）→ PowerShellへ
+        pass
+
+    # --- 2) PowerShell で取得（Windows標準） ---
+    try:
+        # Get-PrintJob は Windows 8/Server2012 以降で使える標準コマンド
+        # 返り値はジョブ数のみを数値で出す
+        cmd = [
+            "powershell",
+            "-NoProfile",
+            "-Command",
+            f"(Get-PrintJob -PrinterName '{printer_name}' | Measure-Object).Count"
+        ]
+        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True)
+        out = out.strip()
+        if out == "":
+            return 0
+        return int(out)
+
+    except Exception:
+        # ここまで全部ダメなら未実装扱い
+        return None
 
 
 def wait_if_queue_full(printer_name: str, queue_limit: int, sleep_sec: float):
     """
     キュー上限付き高速投入の骨組み。
-    get_print_queue_size が実装されたら効く。
+    queue_limit 以上たまっていたら空くまで sleep_sec ごとに待つ。
+    get_print_queue_size が None の場合は待たずに即返す。
     """
     size = get_print_queue_size(printer_name)
     if size is None:
@@ -111,4 +153,5 @@ def wait_if_queue_full(printer_name: str, queue_limit: int, sleep_sec: float):
     while size >= queue_limit:
         time.sleep(sleep_sec)
         size = get_print_queue_size(printer_name)
-
+        if size is None:
+            return  # 待機中に取得不能になったら諦めて抜ける

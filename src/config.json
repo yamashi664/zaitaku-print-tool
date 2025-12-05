@@ -3,7 +3,7 @@
   "printer_name": "Brother DCP-J926N Printer",
   "soffice_path": "C:/Program Files/LibreOffice/program/soffice.exe",
   "pdftoprinter_path":"C:/work/zaitaku-print-tool/PDFtoPrinter.exe",
-  "queue_limit": 6,
-  "sleep_when_queue_full_sec": 1
+  "queue_limit": 1,
+  "sleep_when_queue_full_sec": 5
 }
 
