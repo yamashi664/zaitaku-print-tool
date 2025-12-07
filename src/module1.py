@@ -130,7 +130,12 @@ def get_print_queue_size(printer_name: str) -> Optional[int]:
             "-Command",
             f"(Get-PrintJob -PrinterName '{printer_name}' | Measure-Object).Count"
         ]
-        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True)
+        out = subprocess.check_output(
+            cmd,
+            stderr=subprocess.STDOUT,
+            text=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
         out = out.strip()
         if out == "":
             return 0

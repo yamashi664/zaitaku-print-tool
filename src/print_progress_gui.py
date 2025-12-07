@@ -67,7 +67,12 @@ def is_printer_queue_empty(printer_name: str) -> bool:
             "-Command",
             f"(Get-PrintJob -PrinterName '{safe_name}' | Measure-Object).Count"
         ]
-        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True).strip()
+        out = subprocess.check_output(
+            cmd,
+            stderr=subprocess.STDOUT,
+            text=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        ).strip()
         if out == "":
             return True
         return int(out) == 0
