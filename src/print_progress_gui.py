@@ -70,8 +70,8 @@ def is_printer_queue_empty(printer_name: str) -> bool:
         out = subprocess.check_output(
             cmd,
             stderr=subprocess.STDOUT,
-            text=True,
-            creationflags=subprocess.CREATE_NO_WINDOW
+            text=True
+            #,creationflags=subprocess.CREATE_NO_WINDOW
         ).strip()
         if out == "":
             return True

@@ -1,12 +1,19 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_dynamic_libs
+from PyInstaller.utils.hooks import collect_submodules
+
+binaries = []
+hiddenimports = ['win32print', 'win32api', 'pywintypes']
+binaries += collect_dynamic_libs('pywin32')
+hiddenimports += collect_submodules('pywin32')
 
 
 a = Analysis(
     ['hokokusyo_print.py'],
     pathex=[],
-    binaries=[],
+    binaries=binaries,
     datas=[],
-    hiddenimports=['win32print', 'win32api', 'pywintypes'],
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
