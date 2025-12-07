@@ -91,36 +91,12 @@ def print_word_with_soffice(soffice_path: Path, printer_name: str, word_path: Pa
 
 
 # ===== キュー制御（骨組み） =====
-def get_print_queue_size(printer_name: str) -> Optional[int]:
+def get_print_queue_size(printer_name: str) -> int:
     """
-    プリンタの印刷キュー（待ちジョブ）数を返す。
-    優先順:
-      1) pywin32(win32print) があれば EnumJobs で取得
-      2) 無ければ PowerShell Get-PrintJob で取得
-    どれもダメなら None を返す（キュー制御なしで動作）
+    PowerShellで印刷キュー内ジョブ数を取得（Windows標準）。
+    失敗時は None ではなく大きめの値を返して安全側に倒す。
     """
-    # --- 1) pywin32 で取得 ---
-    try:
-        import win32print  # type: ignore
-
-        # OpenPrinter はプリンタ名が正しい前提（config.json の printer_name）
-        hPrinter = win32print.OpenPrinter(printer_name)
-        try:
-            # EnumJobs(hPrinter, FirstJob, NoJobs, Level)
-            # Level=1 で簡易情報。0件なら空リスト。
-            jobs = win32print.EnumJobs(hPrinter, 0, -1, 1)
-            return len(jobs)
-        finally:
-            win32print.ClosePrinter(hPrinter)
-
-    except ImportError:
-        # pywin32 未導入 → PowerShellへフォールバック
-        pass
-    except Exception:
-        # pywin32はあるが何か失敗（権限/名前違い等）→ PowerShellへ
-        pass
-
-    # --- 2) PowerShell で取得（Windows標準） ---
+    
     try:
         # Get-PrintJob は Windows 8/Server2012 以降で使える標準コマンド
         # 返り値はジョブ数のみを数値で出す
@@ -133,17 +109,16 @@ def get_print_queue_size(printer_name: str) -> Optional[int]:
         out = subprocess.check_output(
             cmd,
             stderr=subprocess.STDOUT,
-            text=True
-            #,creationflags=subprocess.CREATE_NO_WINDOW
-        )
-        out = out.strip()
+            text=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        ).strip()
         if out == "":
             return 0
         return int(out)
 
     except Exception:
-        # ここまで全部ダメなら未実装扱い
-        return None
+        # 判定不能なら「多い」扱いにして待ち側へ寄せる
+        return 9999
 
 
 def wait_if_queue_full(printer_name: str, queue_limit: int, queue_wait_interval_sec: float):

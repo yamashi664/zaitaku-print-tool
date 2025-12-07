@@ -3,7 +3,7 @@ from PyInstaller.utils.hooks import collect_dynamic_libs
 from PyInstaller.utils.hooks import collect_submodules
 
 binaries = []
-hiddenimports = ['win32print', 'win32api', 'pywintypes']
+hiddenimports = ['win32print', 'win32api', 'pywintypes', 'pythoncom']
 binaries += collect_dynamic_libs('pywin32')
 hiddenimports += collect_submodules('pywin32')
 
