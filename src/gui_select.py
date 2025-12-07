@@ -12,7 +12,7 @@ def select_targets_gui(targets: List[Tuple[str, Path, str]]) -> List[Tuple[str, 
 
     root = tk.Tk()
     root.title("印刷するファイルを選択")
-    root.geometry("900x600")
+    root.geometry("600x600")
 
     # --- スクロール可能な領域を作る ---
     container = ttk.Frame(root)

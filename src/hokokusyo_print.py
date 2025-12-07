@@ -6,6 +6,7 @@ import sys
 import module1 as m
 import gui_select as gs
 import gui_input as gi
+import no_word_folder as nw
 
 
 def main():
@@ -27,13 +28,18 @@ def main():
         print(f"\n対象：{target_date.strftime('%Y/%m/%d')} に更新されたPDF\n")        
 
     # 3) 対象収集
-    targets = m.collect_targets(parent_folder, target_date)
+    targets, no_word_folder = m.collect_targets(parent_folder, target_date)
     print(f"印刷対象件数: {len(targets)}")
 
+    #  ) wordファイルの無いフォルダの表示
+    if no_word_folder:
+        if not nw.no_word(no_word_folder):
+            return
+
     # 4) GUIで選択
-    targets = gs.select_targets_gui(targets)
-    print(f"選択された印刷件数: {len(targets)}")
-    if not targets:
+    selected = gs.select_targets_gui(targets)
+    print(f"選択された印刷件数: {len(selected)}")
+    if not selected:
         print("何も選択されなかったので終了します。")
         return
     
@@ -41,7 +47,7 @@ def main():
     ok_count = 0
     ng_count = 0
 
-    for kind, path, fname in targets:
+    for kind, path, fname in selected:
         try:
             # キュー上限付き投入（未実装なら即スルー）
             m.wait_if_queue_full(printer_name, queue_limit, sleep_full)

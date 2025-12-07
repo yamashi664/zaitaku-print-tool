@@ -23,15 +23,17 @@ def load_config() -> dict:
 
 
 # ===== ファイル収集 =====
-def collect_targets(parent_folder: Path, target_date: datetime) -> List[Tuple[str, Path, str]]:
+def collect_targets(parent_folder: Path, target_date: datetime) -> Tuple[List[Tuple[str, Path, str]], List[str]]:
     """
     バッチ仕様：
       - parent 配下の各サブフォルダを走査
       - target_dateに更新されたPDFを印刷対象
-      - そのサブフォルダでPDFが1つでも対象になったら、同フォルダのdocmも全部対象
-    戻り値: [("pdf", pdf_path), ("word", docm_path), ...]
+      - そのサブフォルダでPDFが1つでも対象になったら、同フォルダのwordファイルも全部対象
+    戻り値: [("pdf", pdf_path, pdf_name), ("word", docm_path, pdf_name), ...]
+      - サブフォルダに対象PDFがあるのにwordファイルがない場合、そのサブフォルダ名も返す
     """
     targets: List[Tuple[str, Path, str]] = []
+    no_word_folder: List[str] = []
 
     for sub in sorted(parent_folder.iterdir()):
         if not sub.is_dir():
@@ -56,10 +58,13 @@ def collect_targets(parent_folder: Path, target_date: datetime) -> List[Tuple[st
                 p for p in sorted(sub.glob("*.doc*")) 
                 if p.suffix.lower() in doc_exts and not p.name.startswith("~$")
                 ]
-            for w in docms:
-                targets.append(("word", w, w.name))
+            if docms:
+                for w in docms:
+                   targets.append(("word", w, w.name))
+            else:
+                no_word_folder.append(sub.name)
             
-    return targets
+    return targets, no_word_folder
 
 
 # ===== 印刷：PDFtoPrinter =====
