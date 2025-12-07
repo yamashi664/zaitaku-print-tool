@@ -1,0 +1,17 @@
+外部ライブラリのpywin32(印刷キューの中身取得）を配布ファイルに組み込むにあたって必要な事項
+
+事前に以下のコマンドでpywin32を仮想環境にインストール
+pip install -U pywin32 pyinstaller pyinstaller-hooks-contrib
+python -m pywin32_postinstall -install
+
+pyinstallerでのexe化時に以下のコマンド
+pyinstaller hokokusyo_print.py ^
+  --onedir ^
+  --name hokokusyo_print ^
+  --hidden-import=win32print ^
+  --hidden-import=win32api ^
+  --hidden-import=pythoncom ^
+  --hidden-import=pywintypes
+
+
+この場合は--onefileではなく--onedirでexe化がベターらしい

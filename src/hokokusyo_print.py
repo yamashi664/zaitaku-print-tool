@@ -4,7 +4,8 @@ from datetime import datetime
 import sys
 
 import module1 as m
-import gui_select as g
+import gui_select as gs
+import gui_input as gi
 
 
 def main():
@@ -18,14 +19,7 @@ def main():
     sleep_full = float(cfg.get("sleep_when_queue_full_sec", 1))
 
     # 2) 日付入力
-    while True:
-        s = input("印刷対象とするPDFの更新日付を入力してください (YYYY/MM/DD): ")
-        try:
-            target_date = m.parse_input_date(s)
-            break
-        except ValueError as e:
-            print(e)
-
+    target_date = gi.input_date_gui()
     print(f"\n対象：{target_date.strftime('%Y/%m/%d')} に更新されたPDF\n")
 
     # 3) 対象収集
@@ -33,7 +27,7 @@ def main():
     print(f"印刷対象件数: {len(targets)}")
 
     # 4) GUIで選択
-    targets = g.select_targets_gui(targets)
+    targets = gs.select_targets_gui(targets)
     print(f"選択された印刷件数: {len(targets)}")
     if not targets:
         print("何も選択されなかったので終了します。")

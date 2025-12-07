@@ -2,7 +2,7 @@
 from typing import List, Tuple
 from pathlib import Path
 
-def select_targets_gui(targets: List[Tuple[str, Path]]) -> List[Tuple[str, Path]]:
+def select_targets_gui(targets: List[Tuple[str, Path, str]]) -> List[Tuple[str, Path, str]]:
     """
     targets をチェックボックス付きで表示し、選ばれたものだけ返す。
     tkinter標準のみ。
@@ -54,7 +54,7 @@ def select_targets_gui(targets: List[Tuple[str, Path]]) -> List[Tuple[str, Path]
         for v, _ in vars_:
             v.set(False)
 
-    selected: List[Tuple[str, Path]] = []
+    selected: List[Tuple[str, Path, str]] = []
 
     def done():
         nonlocal selected
