@@ -100,11 +100,12 @@ def get_print_queue_size(printer_name: str) -> int:
     try:
         # Get-PrintJob は Windows 8/Server2012 以降で使える標準コマンド
         # 返り値はジョブ数のみを数値で出す
+        safe_name = printer_name.replace("'", "''")
         cmd = [
             "powershell",
             "-NoProfile",
             "-Command",
-            f"(Get-PrintJob -PrinterName '{printer_name}' | Measure-Object).Count"
+            f"(Get-PrintJob -PrinterName '{safe_name}' | Measure-Object).Count"
         ]
         out = subprocess.check_output(
             cmd,
@@ -125,7 +126,6 @@ def wait_if_queue_full(printer_name: str, queue_limit: int, queue_wait_interval_
     """
     キュー上限付き高速投入の骨組み。
     queue_limit 以上たまっていたら空くまで sleep_sec ごとに待つ。
-    get_print_queue_size が None の場合は待たずに即返す。
     """
     size = get_print_queue_size(printer_name)
     if size is None:

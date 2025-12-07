@@ -11,10 +11,6 @@
 #   cancel_event を立て、次の投入前で停止。
 #   完了時の表示は「印刷を中止しました」にする。
 #
-# 依存:
-# - pywin32 があれば win32print で確認（高速で確実）
-# - 無ければ PowerShell(Get-PrintJob)でフォールバック
-#
 # 使い方:
 #   from print_progress_gui import run_print_with_gui
 #   ok = run_print_with_gui(selected, _print_pdf, _print_word, printer_name)
@@ -26,39 +22,13 @@ import queue
 import time
 import subprocess
 
-try:
-    import win32print
-except ImportError:
-    win32print = None
-
-
 def is_printer_queue_empty(printer_name: str) -> bool:
     """
-    指定プリンタのスプーラジョブが空なら True。
-
-    優先順:
-      1) pywin32 (win32print.EnumJobs)
-      2) PowerShell Get-PrintJob
-    失敗/判定不能なら False（完了誤判定を避ける）
+    PowerShellで印刷キューが空か判定（Windows標準）
     """
     if not printer_name:
         return False
-
-    # 1) pywin32 があればそれで判定
-    if win32print is not None:
-        h = None
-        try:
-            h = win32print.OpenPrinter(printer_name)
-            jobs = win32print.EnumJobs(h, 0, -1, 1)
-            return len(jobs) == 0
-        except Exception:
-            # pywin32 側が失敗したら PS へフォールバック
-            pass
-        finally:
-            if h:
-                win32print.ClosePrinter(h)
-
-    # 2) PowerShell フォールバック
+    
     try:
         safe_name = printer_name.replace("'", "''")  # PS シングルクォートエスケープ
         cmd = [
@@ -70,8 +40,8 @@ def is_printer_queue_empty(printer_name: str) -> bool:
         out = subprocess.check_output(
             cmd,
             stderr=subprocess.STDOUT,
-            text=True
-            #,creationflags=subprocess.CREATE_NO_WINDOW
+            text=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
         ).strip()
         if out == "":
             return True
