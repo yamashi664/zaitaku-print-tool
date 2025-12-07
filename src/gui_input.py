@@ -5,7 +5,7 @@ from tkinter import messagebox
 
 def input_date_gui() -> datetime:
     """
-    YYYY/MM/DDをGUIで入力させて文字列で返す。
+    YYYY/MM/DDをGUIで入力させてdatetime型で返す。
     キャンセルされたらNoneを返す。
     """    
 
@@ -22,6 +22,10 @@ def input_date_gui() -> datetime:
     def on_cancel():
         result["target_date"] = None
         root.destroy()
+
+     # Enterキーで「実行」と同じ動作
+    def on_enter(event):
+        on_ok()
 
     #今日の日付を取得
     today_datetime = datetime.now().strftime("%Y/%m/%d")
@@ -53,6 +57,9 @@ def input_date_gui() -> datetime:
     )
     entry.pack(pady=12)
     entry.insert(0, today_datetime)
+    entry.focus_set()
+    entry.bind("<Return>", on_enter)
+
     
     #ボタン設定
     btn_frame = tk.Frame(root)

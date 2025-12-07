@@ -137,7 +137,7 @@ def get_print_queue_size(printer_name: str) -> Optional[int]:
         return None
 
 
-def wait_if_queue_full(printer_name: str, queue_limit: int, sleep_sec: float):
+def wait_if_queue_full(printer_name: str, queue_limit: int, queue_wait_interval_sec: float):
     """
     キュー上限付き高速投入の骨組み。
     queue_limit 以上たまっていたら空くまで sleep_sec ごとに待つ。
@@ -147,7 +147,7 @@ def wait_if_queue_full(printer_name: str, queue_limit: int, sleep_sec: float):
     if size is None:
         return  # 未実装なら待たない
     while size >= queue_limit:
-        time.sleep(sleep_sec)
+        time.sleep(queue_wait_interval_sec)
         size = get_print_queue_size(printer_name)
         if size is None:
             return  # 待機中に取得不能になったら諦めて抜ける

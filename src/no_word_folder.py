@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import List
 
-def no_word(no_word_folder: List):
+def no_word(no_word_folder: List[str]):
     """
     wordファイルのないフォルダ名を列挙する
     """
