@@ -2,7 +2,8 @@
 from pathlib import Path
 from datetime import datetime
 import sys
-
+import tkinter as tk
+from tkinter import messagebox
 import module1 as m
 import gui_select as gs
 import gui_input as gi
@@ -10,8 +11,23 @@ import no_word_folder as nw
 
 
 def main():
-    # 1) 設定読み込み
-    cfg = m.load_config()
+    # 1) 設定読み込み（config.json が無い/壊れている時はGUIで通知）
+    try:
+        cfg = m.load_config()
+    
+    except Exception as e:
+        # GUIメッセージボックスで致命エラー表示
+        root = tk.Tk()
+        root.withdraw()  # 余計な空ウィンドウを出さない
+        messagebox.showerror(
+            "設定ファイルエラー",
+            f"config.json を読み込めませんでした。\n\n"
+            f"exe と同じフォルダに config.json があるか確認してください。\n\n"
+            f"詳細: {e}"
+        )
+        root.destroy()
+        return
+    
     parent_folder = Path(cfg["parent_folder"])
     printer_name = cfg["printer_name"]
     soffice_path = Path(cfg["soffice_path"])
