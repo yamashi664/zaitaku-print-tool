@@ -72,8 +72,11 @@ def print_pdf_with_pdftoprinter(pdftoprinter_path: Path, printer_name: str, pdf_
     if not pdftoprinter_path.exists():
         raise FileNotFoundError(f"PDFtoPrinter.exe が見つかりません: {pdftoprinter_path}")
     # PDFtoPrinter.exe "file.pdf" "Printer Name"
-    subprocess.run([str(pdftoprinter_path), str(pdf_path), printer_name], check=True)
-
+    subprocess.run(
+        [str(pdftoprinter_path),str(pdf_path), printer_name],
+        check=True,
+        creationflags=subprocess.CREATE_NO_WINDOW
+    )
 
 # ===== 印刷：LibreOffice headless =====
 def print_word_with_soffice(soffice_path: Path, printer_name: str, word_path: Path):
@@ -82,7 +85,8 @@ def print_word_with_soffice(soffice_path: Path, printer_name: str, word_path: Pa
     # soffice --headless --pt "Printer Name" "file.docm"
     subprocess.run(
         [str(soffice_path), "--headless", "--pt", printer_name, str(word_path)],
-        check=True
+        check=True,
+        creationflags=subprocess.CREATE_NO_WINDOW
     )
 
 
