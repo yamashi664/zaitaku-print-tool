@@ -20,7 +20,11 @@ def main():
 
     # 2) 日付入力
     target_date = gi.input_date_gui()
-    print(f"\n対象：{target_date.strftime('%Y/%m/%d')} に更新されたPDF\n")
+    if target_date is None:
+        print("キャンセルのため終了")
+        return
+    else:
+        print(f"\n対象：{target_date.strftime('%Y/%m/%d')} に更新されたPDF\n")        
 
     # 3) 対象収集
     targets = m.collect_targets(parent_folder, target_date)

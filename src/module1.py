@@ -22,15 +22,6 @@ def load_config() -> dict:
     return json.loads(cfg_path.read_text(encoding="utf-8"))
 
 
-# ===== 日付入力パース（YYYY/MM/DD） =====
-def parse_input_date(s: str) -> datetime:
-    # バッチのチェック相当（形式が違えば例外）
-    try:
-        return datetime.strptime(s.strip(), "%Y/%m/%d")
-    except ValueError:
-        raise ValueError("日付形式が違います。YYYY/MM/DD で入力してください。")
-
-
 # ===== ファイル収集 =====
 def collect_targets(parent_folder: Path, target_date: datetime) -> List[Tuple[str, Path, str]]:
     """
