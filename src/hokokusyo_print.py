@@ -8,6 +8,7 @@ import module1 as m
 import gui_select as gs
 import gui_input as gi
 import no_word_folder as nw
+import time
 
 
 def main():
@@ -65,12 +66,20 @@ def main():
     # --- 既存の module1 の印刷関数をGUI用にラップ ---
     def _print_pdf(path):
         # キュー上限付き投入（元コードと同じ）
+        # 投入前にキューが空くのを待つ
         m.wait_if_queue_full(printer_name, queue_limit, queue_wait_interval_sec)
+        # 印刷実行
         m.print_pdf_with_pdftoprinter(pdftoprinter_path, printer_name, path)
+        # OSのスプーラにジョブが登録されるまで少し待つ
+        time.sleep(2.0)
 
     def _print_word(path):
+        # 投入前にキューが空くのを待つ
         m.wait_if_queue_full(printer_name, queue_limit, queue_wait_interval_sec)
+        # 印刷実行
         m.print_word_with_soffice(soffice_path, printer_name, path)
+        # OSのスプーラにジョブが登録されるまで少し待つ
+        time.sleep(4.0)
 
     # --- GUI付きで印刷を走らせる ---
     ok = run_print_with_gui(
