@@ -27,51 +27,6 @@ def load_config() -> dict:
     return json.loads(cfg_path.read_text(encoding="utf-8"))
 
 
-# ===== ファイル収集 =====
-def collect_targets(parent_folder: Path, target_date: datetime) -> Tuple[List[Tuple[str, Path, str]], List[str]]:
-    """
-    バッチ仕様：
-      - parent 配下の各サブフォルダを走査
-      - target_dateに更新されたPDFを印刷対象
-      - そのサブフォルダでPDFが1つでも対象になったら、同フォルダのwordファイルも全部対象
-    戻り値: [("pdf", pdf_path, pdf_name), ("word", docm_path, pdf_name), ...]
-      - サブフォルダに対象PDFがあるのにwordファイルがない場合、そのサブフォルダ名も返す
-    """
-    targets: List[Tuple[str, Path, str]] = []
-    no_word_folder: List[str] = []
-
-    for sub in sorted(parent_folder.iterdir()):
-        if not sub.is_dir():
-            continue
-
-        # PDFの中から更新日がtarget_dateのものだけ拾う
-        pdfs = sorted(sub.glob("*.pdf"))
-        recent_pdfs = []
-        for p in pdfs:
-            mtime = datetime.fromtimestamp(p.stat().st_mtime) #pdfファイルの更新時刻を取得、datetime型に変換
-            if mtime.date() == target_date.date():
-                recent_pdfs.append(p)
-
-        if recent_pdfs:
-            # PDFを対象に追加
-            for p in recent_pdfs:
-                targets.append(("pdf", p, p.name))
-            
-            # PDFがあったフォルダだけwordファイルを対象に追加
-            doc_exts = {".doc", ".docx", ".docm"}
-            docms = [
-                p for p in sorted(sub.glob("*.doc*")) 
-                if p.suffix.lower() in doc_exts and not p.name.startswith("~$")
-                ]
-            if docms:
-                for w in docms:
-                   targets.append(("word", w, w.name))
-            else:
-                no_word_folder.append(sub.name)
-            
-    return targets, no_word_folder
-
-
 # ===== 印刷：PDFtoPrinter =====
 def print_pdf_with_pdftoprinter(pdftoprinter_path: Path, printer_name: str, pdf_path: Path):
     if not pdftoprinter_path.exists():
