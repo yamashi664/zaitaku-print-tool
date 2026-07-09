@@ -234,7 +234,7 @@ def process_zip_and_generate_fax(zip_path: Path, config: dict, selected_pharmacy
                                     p.text = p.text.replace(key, val)
             
             # ファイル名に宛名を組み込んでこのフォルダ内に保存
-            fax_filename = f"【送付状】{facility_name}_{personal_name} 様.docx"
+            fax_filename = f"【送付状】{personal_name} 様_{facility_name}.docx"
             generated_word_path = target_folder / fax_filename
             doc.save(str(generated_word_path))
 
