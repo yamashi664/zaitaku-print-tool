@@ -4,7 +4,6 @@
   "pdftoprinter_path": "./PDFtoPrinter.exe",
   "queue_limit": 3,
   "queue_wait_interval_sec": 5,
-  
   "pharmacies": [
     {
       "pharmacy_name": "〇〇薬局 本店",
@@ -34,5 +33,6 @@
       "tel_num": "03-5323-3333",
       "fax_num": "03-5323-3332"
     }
-  ]
+  ],
+  "last_selected_pharmacy": "〇〇薬局 駅前店"
 }

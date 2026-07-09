@@ -11,39 +11,37 @@ import time
 
 # ===== ZIPファイルと薬局を順番に選択する画面（D&D対応版） =====
 def select_pharmacy_and_zip(pharmacies: list) -> tuple:
+    # 1. 設定を読み込んで、前回の薬局名を取得しておく
+    config = m.load_config()
+    last_selected_name = config.get("last_selected_pharmacy", "")
+
     selected_data = {"pharmacy": None, "zip_path": None}
     
     root = TkinterDnD.Tk()
     root.title("報告書印刷ツール (ZIP・送付状対応版)")
-    root.geometry("450x370")  # ボタン位置調整のため少し高さを最適化
+    root.geometry("450x370")
     root.resizable(False, False)
     
-    # 画面を中央に配置
     root.update_idletasks()
     x = (root.winfo_screenwidth() // 2) - (450 // 2)
     y = (root.winfo_screenheight() // 2) - (370 // 2)
     root.geometry(f"+{x}+{y}")
 
     # --- レイアウト ---
-    
-    # ステップ1: タイトル案内
     lbl1 = tk.Label(root, text="1. 処理するZIPファイルをドロップするか選択してください", font=("MS Gothic", 10, "bold"))
     lbl1.pack(pady=(15, 5))
     
-    # 視覚的なドロップエリア（白い四角のボックス）
     drop_frame = tk.Frame(root, width=350, height=100, bg="white", bd=2, relief="groove")
-    drop_frame.pack(pady=(5, 2)) # ボタンとの間隔を少し狭くしました
+    drop_frame.pack(pady=(5, 2))
     drop_frame.pack_propagate(False)
 
-    # 四角の真ん中に配置する「＋」と案内メッセージ
     lbl_plus = tk.Label(drop_frame, text="＋", bg="white", fg="#0078d7", font=("MS Gothic", 24, "bold"))
     lbl_plus.pack(pady=(15, 0))
     
     lbl_zip_name = tk.Label(drop_frame, text="ここにZIPファイルをドロップ", bg="white", fg="gray", font=("MS Gothic", 9))
     lbl_zip_name.pack(pady=(0, 10))
 
-    # --- ボタン・D&Dの動作設定 ---
-    
+    # --- D&Dの動作設定 ---
     def activate_next_step(file_path_str: str):
         clean_path = file_path_str.strip('{}')
         path_obj = Path(clean_path)
@@ -54,12 +52,10 @@ def select_pharmacy_and_zip(pharmacies: list) -> tuple:
             
         selected_data["zip_path"] = path_obj
         
-        # ファイルが選ばれたら、白い四角の中身を「緑色の成功表示」に変える
         drop_frame.config(bg="#e6f4ea")
         lbl_plus.config(text="✓", bg="#e6f4ea", fg="green")
         lbl_zip_name.config(text=f"選択中: {path_obj.name}", bg="#e6f4ea", fg="green", font=("MS Gothic", 9, "bold"))
         
-        # 薬局選択と確定ボタンを有効化する
         lbl2.config(fg="black")
         combo.config(state="readonly")
         btn_submit.config(state="normal", bg="#0078d7")
@@ -77,29 +73,40 @@ def select_pharmacy_and_zip(pharmacies: list) -> tuple:
             activate_next_step(event.data)
 
     def on_submit():
+        chosen_name = combo.get()
         idx = combo.current()
         if idx == -1:
             messagebox.showwarning("警告", "薬局を選択してください。")
             return
         
+        # 薬局データを確定
         selected_data["pharmacy"] = pharmacies[idx]
+        
+        # 【追加機能】選択した薬局を保存
+        config["last_selected_pharmacy"] = chosen_name
+        m.save_config(config)
+        
         root.destroy()
 
-    # ★ 「またはファイルを選択...」のボタンをドロップボックスのすぐ下に配置
     btn_zip = tk.Button(root, text="またはファイルを選択...", command=on_select_zip, font=("MS Gothic", 9))
     btn_zip.pack(pady=(2, 5))
 
-    # ステップ2: 薬局選択
+    # --- ステップ2: 薬局選択 ---
     lbl2 = tk.Label(root, text="2. 送付状に記載する薬局を選択してください", font=("MS Gothic", 10, "bold"), fg="gray")
     lbl2.pack(pady=(15, 5))
 
     pharmacy_names = [p.get("pharmacy_name", "名称未設定") for p in pharmacies]
     combo = ttk.Combobox(root, values=pharmacy_names, state="disabled", width=40, font=("MS Gothic", 10))
     combo.pack(pady=5)
+    
+    # 記憶した薬局を反映
     if pharmacy_names:
-        combo.current(0)
+        if last_selected_name in pharmacy_names:
+            combo.set(last_selected_name)
+        else:
+            combo.current(0)
 
-    # 画面全体および「白い四角（各ラベル含む）」のどこに落としても反応するように紐付け
+    # --- D&D紐付け ---
     root.drop_target_register(DND_FILES)
     root.dnd_bind('<<Drop>>', on_drop_zip)
     drop_frame.drop_target_register(DND_FILES)
@@ -112,10 +119,7 @@ def select_pharmacy_and_zip(pharmacies: list) -> tuple:
     btn_submit = tk.Button(root, text="この薬局で印刷処理を開始", command=on_submit, state="disabled", bg="gray", fg="white", font=("MS Gothic", 10, "bold"), padx=10, pady=5)
     btn_submit.pack(pady=(15, 10))
 
-    def on_closing():
-        root.destroy()
-
-    root.protocol("WM_DELETE_WINDOW", on_closing)
+    root.protocol("WM_DELETE_WINDOW", root.destroy)
     root.mainloop()
     
     return selected_data["pharmacy"], selected_data["zip_path"]

@@ -26,6 +26,11 @@ def load_config() -> dict:
         raise FileNotFoundError(f"config.json が見つかりません: {cfg_path}")
     return json.loads(cfg_path.read_text(encoding="utf-8"))
 
+# ===== 設定を config.json に保存する =====
+def save_config(config_dict: dict):
+    cfg_path = base_dir() / "config.json"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        json.dump(config_dict, f, indent=2, ensure_ascii=False)
 
 # ===== 印刷：PDFtoPrinter =====
 # module1.py
@@ -221,3 +226,5 @@ def process_zip_and_generate_fax(zip_path: Path, config: dict, selected_pharmacy
 
     # すべてのフォルダの処理が終わったら、一時フォルダのパスと、完成した全印刷リストを返す
     return temp_dir, print_list
+
+
