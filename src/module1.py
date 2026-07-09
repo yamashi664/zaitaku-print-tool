@@ -28,16 +28,24 @@ def load_config() -> dict:
 
 
 # ===== 印刷：PDFtoPrinter =====
-def print_pdf_with_pdftoprinter(pdftoprinter_path: Path, printer_name: str, pdf_path: Path):
+# module1.py
+
+def print_pdf_with_pdftoprinter(pdftoprinter_path_str: str, printer_name: str, pdf_path: Path):
+    # 文字列からPathオブジェクトに変換
+    pdftoprinter_path = Path(pdftoprinter_path_str)
+    
+    # 【追加】もし相対パス（または現在の基準パスからの相対）なら、絶対パスに解決する
+    if not pdftoprinter_path.is_absolute():
+        pdftoprinter_path = base_dir() / pdftoprinter_path
+
     if not pdftoprinter_path.exists():
         raise FileNotFoundError(f"PDFtoPrinter.exe が見つかりません: {pdftoprinter_path}")
-    # PDFtoPrinter.exe "file.pdf" "Printer Name"
+    
+    # subprocess.run には絶対パスを渡す
     subprocess.run(
-        [str(pdftoprinter_path),str(pdf_path), printer_name],
-        check=True,
-        creationflags=subprocess.CREATE_NO_WINDOW
+        [str(pdftoprinter_path), str(pdf_path), printer_name],
+        check=True
     )
-
 # ===== 印刷：LibreOffice headless =====
 def print_word_with_soffice(soffice_path: Path, printer_name: str, word_path: Path):
     if not soffice_path.exists():

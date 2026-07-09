@@ -5,7 +5,10 @@ a = Analysis(
     ['hokokusyo_print.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[
+	('config.json', '.'),
+        ('fax_template.docx', '.')
+	],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
