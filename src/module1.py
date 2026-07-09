@@ -220,29 +220,27 @@ def process_zip_and_generate_fax(zip_path: Path, config: dict, selected_pharmacy
                 "{{report_count}}": str(report_count)
             }
             
-            def safe_replace(paragraph, replacements):
+            # 1. 共通の置換関数を定義します
+            def safe_replace_in_paragraph(p, replacements):
                 for key, val in replacements.items():
-                    if key in paragraph.text:
-                        # 1. まず段落全体で文字列を置換（これでRunの分断を無視して中身を入れ替える）
-                        paragraph.text = paragraph.text.replace(key, val)
-            
-                        # 2. ただしこれだと段落全体の書式がリセットされる場合があるため、
-                        #    ここで「薬局名」だけ特別にフォントサイズを戻す処理を行う
+                    if key in p.text:
+                        p.text = p.text.replace(key, val)
+                        # 薬局名だけサイズを強制適用する処理もここに1回書けばOK
                         if key == "{{pharmacy_name}}":
-                            for run in paragraph.runs:
+                            for run in p.runs:
                                 if val in run.text:
-                                    run.font.size = Pt(14) # ここで強制的に指定サイズにする
+                                    run.font.size = Pt(14)
 
-            # 本文の置換処理
+            # 2. 本文の置換
             for p in doc.paragraphs:
-                safe_replace(p, replacements)
+                safe_replace_in_paragraph(p, replacements)
 
-            # テーブル内の置換処理
+            # 3. テーブル内の置換
             for table in doc.tables:
                 for row in table.rows:
                     for cell in row.cells:
                         for p in cell.paragraphs:
-                            safe_replace(p, replacements)
+                            safe_replace_in_paragraph(p, replacements)
             
             # ファイル名に宛名を組み込んでこのフォルダ内に保存
             fax_filename = f"【送付状】{personal_name} 様_{facility_name}.docx"
