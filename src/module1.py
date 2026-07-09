@@ -9,6 +9,8 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Tuple, Optional
 from docx import Document
+from docx.shared import Pt
+from docx.oxml.ns import qn
 
 # ===== パス基準（exeの隣を見るための定番） =====
 def base_dir() -> Path:
@@ -218,20 +220,29 @@ def process_zip_and_generate_fax(zip_path: Path, config: dict, selected_pharmacy
                 "{{report_count}}": str(report_count)
             }
             
+            def safe_replace(paragraph, replacements):
+                for key, val in replacements.items():
+                    if key in paragraph.text:
+                        # 1. まず段落全体で文字列を置換（これでRunの分断を無視して中身を入れ替える）
+                        paragraph.text = paragraph.text.replace(key, val)
+            
+                        # 2. ただしこれだと段落全体の書式がリセットされる場合があるため、
+                        #    ここで「薬局名」だけ特別にフォントサイズを戻す処理を行う
+                        if key == "{{pharmacy_name}}":
+                            for run in paragraph.runs:
+                                if val in run.text:
+                                    run.font.size = Pt(14) # ここで強制的に指定サイズにする
+
             # 本文の置換処理
             for p in doc.paragraphs:
-                for key, val in replacements.items():
-                    if key in p.text:
-                        p.text = p.text.replace(key, val)
-            
+                safe_replace(p, replacements)
+
             # テーブル内の置換処理
             for table in doc.tables:
                 for row in table.rows:
                     for cell in row.cells:
                         for p in cell.paragraphs:
-                            for key, val in replacements.items():
-                                if key in p.text:
-                                    p.text = p.text.replace(key, val)
+                            safe_replace(p, replacements)
             
             # ファイル名に宛名を組み込んでこのフォルダ内に保存
             fax_filename = f"【送付状】{personal_name} 様_{facility_name}.docx"
