@@ -3,9 +3,12 @@ import sys
 import json
 import time
 import subprocess
+import zipfile
+import tempfile
 from pathlib import Path
 from datetime import datetime
 from typing import List, Tuple, Optional
+from docx import Document
 
 # ===== パス基準（exeの隣を見るための定番） =====
 def base_dir() -> Path:
@@ -135,3 +138,114 @@ def wait_if_queue_full(printer_name: str, queue_limit: int, queue_wait_interval_
         size = get_print_queue_size(printer_name)
         if size is None:
             return  # 待機中に取得不能になったら諦めて抜ける
+
+
+# ======zipファイル対応版追加要素==========
+def process_zip_and_generate_fax(zip_path: Path, config: dict, selected_pharmacy: dict) -> Tuple[Path, List[Tuple[str, Path, str]]]:
+    """
+    V2用ロジック (アンダースコア区切りフォルダ対応版):
+      1) zipファイルを一時フォルダに解凍
+      2) 内部の「個人名_施設名_役職」という形式のフォルダを検知し、宛先情報を抽出
+      3) fax_template.docx の各タグを、抽出した情報および config 情報で置換
+      4) 印刷対象リストを返却
+    """
+    temp_dir = Path(tempfile.mkdtemp(prefix="zaitaku_print_"))
+    
+    # zipファイルを解凍
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        for member in zip_ref.infolist():
+            try:
+                filename = member.filename.encode('cp437').decode('cp932')
+            except Exception:
+                filename = member.filename
+            
+            target_path = temp_dir / filename
+            if member.is_dir():
+                target_path.mkdir(parents=True, exist_ok=True)
+            else:
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                with zip_ref.open(member) as source, open(target_path, "wb") as target:
+                    target.write(source.read())
+
+    # 印刷対象を詰め込む最終的なリスト
+    print_list = []
+
+    # 1. 一時フォルダの直下にある「宛先フォルダ」を1つずつループで巡回する
+    #    (例: temp_dir / "ケアマネA_ほにゃらら介護相談室_ケアマネジャー" など)
+    for target_folder in temp_dir.iterdir():
+        if not target_folder.is_dir():
+            continue  # ファイル（もしあれば）はスキップして、フォルダだけを処理
+
+        # 2. そのフォルダ名から「個人名」「施設名」を抽出する
+        folder_name = target_folder.name
+        parts = folder_name.split("_")
+        
+        if len(parts) >= 2:
+            personal_name = parts[0]
+            facility_name = parts[1]
+        else:
+            personal_name = "関係者"
+            facility_name = folder_name
+
+        # 3. そのフォルダ「の内部だけ」からPDFファイルを収集する
+        pdf_files = list(target_folder.glob("*.pdf"))  # **/* ではなく *.pdf でそのフォルダ直下のみ
+        report_count = len(pdf_files)
+
+        if report_count == 0:
+            continue  # もしPDFが1枚もないフォルダなら送付状を作る必要がないのでスキップ
+
+        # 4. このフォルダ（宛先）専用の送付状をWordテンプレートから自動生成する
+        # プログラム/exeと同じ場所にあるテンプレートを見に行く
+        template_path = base_dir() / "fax_template.docx"
+        generated_word_path = None
+
+        if template_path.exists():
+            doc = Document(str(template_path))
+            today_str = datetime.now().strftime("%Y年%m月%d日")
+            
+            # 選択された薬局情報
+            ph_info = selected_pharmacy if selected_pharmacy else {}
+            
+            replacements = {
+                "{{post-code}}": ph_info.get("post_code", "〒000-0000"),
+                "{{address}}": ph_info.get("address", "薬局の住所が未設定です"),
+                "{{pharmacy_name}}": ph_info.get("pharmacy_name", "〇〇薬局"), # キー名をpharmacy_nameに統一
+                "{{tel_num}}": ph_info.get("tel_num", "000-000-0000"),
+                "{{fax_num}}": ph_info.get("fax_num", "000-000-0000"),
+                "{{facility_name}}": facility_name,
+                "{{personal_name}}": personal_name,
+                "{{date}}": today_str,
+                "{{report_count}}": str(report_count)
+            }
+            
+            # 本文の置換処理
+            for p in doc.paragraphs:
+                for key, val in replacements.items():
+                    if key in p.text:
+                        p.text = p.text.replace(key, val)
+            
+            # テーブル内の置換処理
+            for table in doc.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        for p in cell.paragraphs:
+                            for key, val in replacements.items():
+                                if key in p.text:
+                                    p.text = p.text.replace(key, val)
+            
+            # ファイル名に宛名を組み込んでこのフォルダ内に保存
+            fax_filename = f"【送付状】{facility_name}_{personal_name} 様.docx"
+            generated_word_path = target_folder / fax_filename
+            doc.save(str(generated_word_path))
+
+        # 5. このフォルダの「印刷セット」を順序通りに全体のリストに追加する
+        # (まず、そのフォルダ内のPDFを名前順（01, 02...）に配置)
+        for pdf_path in pdf_files:
+            print_list.append(("pdf", pdf_path, pdf_path.name))
+            
+        # (最後に、出来上がった送付状を一番後ろに配置)
+        if generated_word_path:
+            print_list.append(("word", generated_word_path, generated_word_path.name))
+
+    # すべてのフォルダの処理が終わったら、一時フォルダのパスと、完成した全印刷リストを返す
+    return temp_dir, print_list

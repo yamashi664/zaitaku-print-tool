@@ -2,8 +2,24 @@
   "parent_folder": "C:/work/zaitaku-print-tool/parent_sample",
   "printer_name": "Brother DCP-J926N Printer",
   "soffice_path": "C:/Program Files/LibreOffice/program/soffice.exe",
-  "pdftoprinter_path":"C:/work/zaitaku-print-tool/PDFtoPrinter.exe",
+  "pdftoprinter_path": "C:/work/zaitaku-print-tool/PDFtoPrinter.exe",
   "queue_limit": 3,
-  "queue_wait_interval_sec": 5
+  "queue_wait_interval_sec": 5,
+  
+  "pharmacies": [
+    {
+      "pharmacy_name": "〇〇薬局 本店",
+      "post_code": "〒123-4567",
+      "address": "東京都...",
+      "tel_num": "03-1234-5678",
+      "fax_num": "03-1234-5679"
+    },
+    {
+      "pharmacy_name": "〇〇薬局 駅前店",
+      "post_code": "〒987-6543",
+      "address": "東京都...",
+      "tel_num": "03-5321-xxxx",
+      "fax_num": "03-5321-xxxx"
+    }
+  ]
 }
-
