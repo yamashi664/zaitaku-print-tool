@@ -70,7 +70,7 @@
  [],
  False,
  False,
- 1783579567,
+ 1783580883,
  [('runw.exe',
    'C:\\work\\zaitaku-print-tool\\.venv\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw.exe',
    'EXECUTABLE')],
