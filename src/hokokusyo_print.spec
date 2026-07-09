@@ -7,7 +7,8 @@ a = Analysis(
     binaries=[],
     datas=[
 	('config.json', '.'),
-        ('fax_template.docx', '.')
+        ('fax_template.docx', '.'),
+	('PDFtoPrinter.exe', '.')
 	],
     hiddenimports=[],
     hookspath=[],
