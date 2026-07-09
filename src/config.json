@@ -18,8 +18,22 @@
       "pharmacy_name": "〇〇薬局 駅前店",
       "post_code": "〒987-6543",
       "address": "東京都...",
-      "tel_num": "03-5321-xxxx",
-      "fax_num": "03-5321-xxxx"
+      "tel_num": "03-5320-3333",
+      "fax_num": "03-5320-3332"
+    },
+    {
+      "pharmacy_name": "〇〇薬局 南店",
+      "post_code": "〒987-6545",
+      "address": "東京都...",
+      "tel_num": "03-5325-3333",
+      "fax_num": "03-5325-3332"
+    },
+    {
+      "pharmacy_name": "〇〇薬局 東店",
+      "post_code": "〒987-6500",
+      "address": "東京都...",
+      "tel_num": "03-5323-3333",
+      "fax_num": "03-5323-3332"
     }
   ]
 }
