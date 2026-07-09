@@ -6,32 +6,32 @@
   "queue_wait_interval_sec": 5,
   "pharmacies": [
     {
-      "pharmacy_name": "〇〇薬局 本店",
-      "post_code": "〒123-4567",
-      "address": "東京都...",
-      "tel_num": "03-1234-5678",
-      "fax_num": "03-1234-5679"
+      "pharmacy_name": "ふくら薬局",
+      "post_code": "〒870-0024",
+      "address": "大分市錦町1丁目1番1号",
+      "tel_num": "097-574-6958",
+      "fax_num": "097-574-6959"
     },
     {
-      "pharmacy_name": "〇〇薬局 駅前店",
-      "post_code": "〒987-6543",
-      "address": "東京都...",
-      "tel_num": "03-5320-3333",
-      "fax_num": "03-5320-3332"
+      "pharmacy_name": "ふくら薬局 猪野店",
+      "post_code": "〒870-0134",
+      "address": "大分市大字猪野1076番地",
+      "tel_num": "097-547-8373",
+      "fax_num": "097-547-8374"
     },
     {
-      "pharmacy_name": "〇〇薬局 南店",
-      "post_code": "〒987-6545",
-      "address": "東京都...",
-      "tel_num": "03-5325-3333",
-      "fax_num": "03-5325-3332"
+      "pharmacy_name": "ふくら薬局 金池店",
+      "post_code": "〒870-0026",
+      "address": "大分市金池町3丁目1-78 1階",
+      "tel_num": "097-529-5460",
+      "fax_num": "097-529-5461"
     },
     {
-      "pharmacy_name": "〇〇薬局 東店",
-      "post_code": "〒987-6500",
-      "address": "東京都...",
-      "tel_num": "03-5323-3333",
-      "fax_num": "03-5323-3332"
+      "pharmacy_name": "ふくら薬局 萩原店",
+      "post_code": "〒870-0921",
+      "address": "大分市萩原3丁目21-10 シャルル純 102号室",
+      "tel_num": "097-529-5977",
+      "fax_num": "097-529-5978"
     }
   ],
   "last_selected_pharmacy": "〇〇薬局 本店"
