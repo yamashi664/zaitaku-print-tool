@@ -5,8 +5,8 @@ import time
 import subprocess
 import zipfile
 import tempfile
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import List, Tuple, Optional
 from docx import Document
 from docx.shared import Pt

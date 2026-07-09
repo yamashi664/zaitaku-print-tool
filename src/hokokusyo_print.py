@@ -1,6 +1,5 @@
 # hokokusyo_print.py
 from pathlib import Path
-from datetime import datetime
 import sys
 import shutil
 import tkinter as tk
