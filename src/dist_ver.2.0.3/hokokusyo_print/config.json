@@ -1,0 +1,39 @@
+{
+  "printer_name": "Brother DCP-J926N Printer",
+  "soffice_path": "C:/Program Files/LibreOffice/program/soffice.exe",
+  "pdftoprinter_path": "./PDFtoPrinter.exe",
+  "queue_limit": 3,
+  "queue_wait_interval_sec": 5,
+  "pharmacies": [
+    {
+      "pharmacy_name": "ふくら薬局",
+      "post_code": "〒870-0024",
+      "address": "大分市錦町1丁目1番1号",
+      "tel_num": "097-574-6958",
+      "fax_num": "097-574-6959"
+    },
+    {
+      "pharmacy_name": "ふくら薬局 猪野店",
+      "post_code": "〒870-0134",
+      "address": "大分市大字猪野1076番地",
+      "tel_num": "097-547-8373",
+      "fax_num": "097-547-8374"
+    },
+    {
+      "pharmacy_name": "ふくら薬局 金池店",
+      "post_code": "〒870-0026",
+      "address": "大分市金池町3丁目1-78 1階",
+      "tel_num": "097-529-5460",
+      "fax_num": "097-529-5461"
+    },
+    {
+      "pharmacy_name": "ふくら薬局 萩原店",
+      "post_code": "〒870-0921",
+      "address": "大分市萩原3丁目21-10 シャルル純 102号室",
+      "tel_num": "097-529-5977",
+      "fax_num": "097-529-5978"
+    }
+  ],
+  "last_selected_pharmacy": "〇〇薬局 駅前店",
+  "last_print_order": "報告書→送付状"
+}
