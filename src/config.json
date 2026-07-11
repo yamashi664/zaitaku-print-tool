@@ -34,5 +34,6 @@
       "fax_num": "03-5323-3332"
     }
   ],
-  "last_selected_pharmacy": "〇〇薬局 駅前店"
+  "last_selected_pharmacy": "〇〇薬局 駅前店",
+  "last_print_order": "報告書→送付状"
 }

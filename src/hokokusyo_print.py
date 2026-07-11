@@ -11,15 +11,16 @@ import time
 
 # ===== ZIPファイルと薬局を順番に選択する画面（D&D対応版） =====
 def select_pharmacy_and_zip(pharmacies: list) -> tuple:
-    # 1. 設定を読み込んで、前回の薬局名を取得しておく
+    # 設定の読み込み
     config = m.load_config()
-    last_selected_name = config.get("last_selected_pharmacy", "")
+    last_pharmacy = config.get("last_selected_pharmacy", "")
+    last_order = config.get("last_print_order", "報告書→送付状")
 
-    selected_data = {"pharmacy": None, "zip_path": None}
+    selected_data = {"pharmacy": None, "zip_path": None, "print_order": last_order}
     
     root = TkinterDnD.Tk()
-    root.title("報告書印刷ツール (ZIP・送付状対応版)")
-    root.geometry("450x370")
+    root.title("報告書印刷ツール")
+    root.geometry("450x450") 
     root.resizable(False, False)
     
     root.update_idletasks()
@@ -40,6 +41,8 @@ def select_pharmacy_and_zip(pharmacies: list) -> tuple:
     
     lbl_zip_name = tk.Label(drop_frame, text="ここにZIPファイルをドロップ", bg="white", fg="gray", font=("MS Gothic", 9))
     lbl_zip_name.pack(pady=(0, 10))
+
+    
 
     # --- D&Dの動作設定 ---
     def activate_next_step(file_path_str: str):
@@ -74,16 +77,19 @@ def select_pharmacy_and_zip(pharmacies: list) -> tuple:
 
     def on_submit():
         chosen_name = combo.get()
+        chosen_order = combo_order.get()
         idx = combo.current()
         if idx == -1:
             messagebox.showwarning("警告", "薬局を選択してください。")
             return
         
-        # 薬局データを確定
+        # 薬局、印刷順データを確定
         selected_data["pharmacy"] = pharmacies[idx]
+        selected_data["print_order"] = chosen_order
         
-        # 【追加機能】選択した薬局を保存
+        # 選択した薬局、印刷順を保存
         config["last_selected_pharmacy"] = chosen_name
+        config["last_print_order"] = chosen_order
         m.save_config(config)
         
         root.destroy()
@@ -98,11 +104,20 @@ def select_pharmacy_and_zip(pharmacies: list) -> tuple:
     pharmacy_names = [p.get("pharmacy_name", "名称未設定") for p in pharmacies]
     combo = ttk.Combobox(root, values=pharmacy_names, state="disabled", width=40, font=("MS Gothic", 10))
     combo.pack(pady=5)
+
+    # --- 3. 印刷順の選択 ---
+    lbl3 = tk.Label(root, text="3. 印刷順を選択してください", font=("MS Gothic", 10, "bold"))
+    lbl3.pack(pady=(15, 5))
+    
+    order_options = ["報告書→送付状", "送付状→報告書"]
+    combo_order = ttk.Combobox(root, values=order_options, state="readonly", width=40)
+    combo_order.set(last_order) # 前回値をセット
+    combo_order.pack(pady=5)
     
     # 記憶した薬局を反映
     if pharmacy_names:
-        if last_selected_name in pharmacy_names:
-            combo.set(last_selected_name)
+        if last_pharmacy in pharmacy_names:
+            combo.set(last_pharmacy)
         else:
             combo.current(0)
 
@@ -122,7 +137,7 @@ def select_pharmacy_and_zip(pharmacies: list) -> tuple:
     root.protocol("WM_DELETE_WINDOW", root.destroy)
     root.mainloop()
     
-    return selected_data["pharmacy"], selected_data["zip_path"]
+    return selected_data["pharmacy"], selected_data["zip_path"], selected_data["print_order"]
 
 def main():
     # 1) 設定読み込み（config.json が無い/壊れている時はGUIで通知）
@@ -156,7 +171,7 @@ def main():
         return
 
     # 2) 薬局の選択 ＆ ZIPファイルの選択
-    selected_pharmacy, zip_path = select_pharmacy_and_zip(pharmacies)
+    selected_pharmacy, zip_path, print_order = select_pharmacy_and_zip(pharmacies)
     if selected_pharmacy is None or zip_path is None:
         print("キャンセルのため終了します。")
         return
@@ -189,7 +204,7 @@ def main():
     temp_dir = None
     try:
         # 3) ZIPファイルの解凍 ＆ 各フォルダごとの送付状自動生成
-        temp_dir, print_list = m.process_zip_and_generate_fax(zip_path, cfg, selected_pharmacy)
+        temp_dir, print_list = m.process_zip_and_generate_fax(zip_path, cfg, selected_pharmacy, print_order)
         print(f"展開・生成された総印刷対象件数: {len(print_list)}")
 
         if not print_list:
@@ -199,13 +214,13 @@ def main():
             root.destroy()
             return
 
-        # 4) GUIで最終確認・選択（印刷順はすでに PDF ➡️ 送付状 になっています）
+        # 4) GUIで最終確認・選択
         selected = gs.select_targets_gui(print_list)
         print(f"ユーザーが選択した印刷件数: {len(selected)}")
         if not selected:
             print("何も選択されなかったので終了します。")
             return
-        
+
         # 5) 印刷実行（進捗GUIつき）
         from print_progress_gui import run_print_with_gui
 

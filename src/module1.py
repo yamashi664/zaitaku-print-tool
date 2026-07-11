@@ -111,7 +111,7 @@ def wait_if_queue_full(printer_name: str, queue_limit: int, queue_wait_interval_
 
 
 # ======zipファイル対応版追加要素==========
-def process_zip_and_generate_fax(zip_path: Path, config: dict, selected_pharmacy: dict) -> Tuple[Path, List[Tuple[str, Path, str]]]:
+def process_zip_and_generate_fax(zip_path: Path, config: dict, selected_pharmacy: dict, print_order: str) -> Tuple[Path, List[Tuple[str, Path, str]]]:
     """
     V2用ロジック (アンダースコア区切りフォルダ対応版):
       1) zipファイルを一時フォルダに解凍
@@ -216,13 +216,20 @@ def process_zip_and_generate_fax(zip_path: Path, config: dict, selected_pharmacy
             doc.save(str(generated_word_path))
 
         # 5. このフォルダの「印刷セット」を順序通りに全体のリストに追加する
-        # (まず、そのフォルダ内のPDFを名前順（01, 02...）に配置)
-        for pdf_path in pdf_files:
-            print_list.append(("pdf", pdf_path, pdf_path.name))
-            
-        # (最後に、出来上がった送付状を一番後ろに配置)
-        if generated_word_path:
-            print_list.append(("word", generated_word_path, generated_word_path.name))
+        # ★修正箇所：印刷順序に応じて追加順を変える
+        pdf_list = [("pdf", p, p.name) for p in pdf_files]
+        word_item = ("word", generated_word_path, generated_word_path.name) if generated_word_path else None
+    
+        if print_order == "送付状→報告書":
+            # 送付状を先にする場合
+            if word_item:
+                print_list.append(word_item)
+            print_list.extend(pdf_list)
+        else:
+            # デフォルト（報告書→送付状）
+            print_list.extend(pdf_list)
+            if word_item:
+                print_list.append(word_item)
 
     # すべてのフォルダの処理が終わったら、一時フォルダのパスと、完成した全印刷リストを返す
     return temp_dir, print_list
